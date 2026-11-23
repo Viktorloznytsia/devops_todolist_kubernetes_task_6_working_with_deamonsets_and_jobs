@@ -57,3 +57,34 @@ Replace `<job-name>` with the name from the first command, for example
 The CronJob keeps 10 successful and 5 failed jobs in history
 (`successfulJobsHistoryLimit: 10`, `failedJobsHistoryLimit: 5`) and has
 `concurrencyPolicy: Allow`.
+
+### Example output
+
+DaemonSet logs (`kubectl logs daemonset/curl-daemonset -n mateapp`), one line every 5 seconds:
+
+```
+Health OK
+Health OK
+Health OK
+```
+
+CronJob jobs and logs (`kubectl get jobs,pods -n mateapp`, then `kubectl logs job/curl-cronjob-29924108 -n mateapp`):
+
+```
+NAME                             STATUS     COMPLETIONS   DURATION   AGE
+job.batch/curl-cronjob-29924108  Complete   1/1           11s        28s
+
+NAME                                  READY   STATUS      RESTARTS   AGE
+pod/curl-cronjob-29924108-nvwtr       0/1     Completed   0          28s
+pod/curl-daemonset-6bbx9              1/1     Running     0          10m
+
+Health OK
+```
+
+## 3. Note about the container image
+
+The task text names the image `busyboxplus:curl`. This name without a repository prefix does
+not exist on Docker Hub: the pod fails with `ErrImagePull` / `ImagePullBackOff`
+(`pull access denied for busyboxplus, repository does not exist`). Both manifests therefore use
+`ikulyk404/busyboxplus:curl` (image `busyboxplus`, tag `curl`), the same image as in the
+template manifest `.infrastructure/busybox.yml`.
